@@ -1,0 +1,61 @@
+﻿@page "/student"
+
+
+<h3>Student</h3>
+
+@if (studentsList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var student in studentsList)
+            {
+                <tr>
+                    <td>@student.FirstName</td>
+                    <td>@student.LastName</td>
+                    <td>@student.Address</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <p>
+        <button class="btn btn-success">Add Student</button>
+    </p>
+}
+
+@code {
+    private StudentModel[]? studentsList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate asynchronous loading to demonstrate a loading indicator
+        await Task.Delay(500);
+
+        List<StudentModel> studentModels = new List<StudentModel>();
+        studentModels.Add(new StudentModel { FirstName = "nitish", LastName = "reddy", Address = "usa", Pincode = "909900" });
+        studentModels.Add(new StudentModel { FirstName = "saurabh", LastName = "kar", Address = "usa", Pincode = "909900" });
+        studentModels.Add(new StudentModel { FirstName = "nil", LastName = "ta", Address = "usa", Pincode = "909900" });
+
+        studentsList = studentModels.ToArray();
+    }
+
+    private class StudentModel
+    {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Address { get; set; }
+        public string? Pincode { get; set; }
+    }
+}
