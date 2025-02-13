@@ -1,4 +1,5 @@
 ﻿@page "/student"
+@using MauiBlazor.Components.Model
 
 
 <h3>Student</h3>
@@ -15,6 +16,8 @@ else
                 <th>First Name</th>
                 <th>Last Name</th>
                 <th>Address</th>
+                <th>Pincode</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -25,18 +28,109 @@ else
                     <td>@student.FirstName</td>
                     <td>@student.LastName</td>
                     <td>@student.Address</td>
+                    <td>@student.Pincode</td>
+                    <td> <button class="btn btn-success" @onclick="(()=>ViewStudent(student))">Edit</button></td>
                 </tr>
             }
         </tbody>
     </table>
 
     <p>
-        <button class="btn btn-success">Add Student</button>
+        <button class="btn btn-success" @onclick="AddNewStudent">Add Student</button>
     </p>
 }
 
+@if (ShowPopup)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Add Student</h3>
+                    <!-- Button to close the popup -->
+                    <button type="button" class="close"
+                    @onclick="ClosePopup">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <!-- Edit form for the current forecast -->
+                <div class="modal-body">
+                    <input class="form-control" type="text"
+                    placeholder="Enter FirstName"
+                    @bind="studentModel.FirstName" />
+                    <input class="form-control" type="text"
+                    placeholder="Enter LastName"
+                    @bind="studentModel.LastName" />
+                    <input class="form-control" type="text"
+                    placeholder="Enter Address"
+                    @bind="studentModel.Address" />
+                    <input class="form-control" type="text"
+                    placeholder="Enter Pincode"
+                    @bind="studentModel.Pincode" />
+                    <br />
+                    <!-- Button to save the forecast -->
+                    @if (isEdit)
+                    {
+                        <button class="btn btn-success"
+                        @onclick="EditStudent">
+                            Save
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-success"
+                        @onclick="SaveStudent">
+                            Save
+                        </button>
+                    }
+                    &nbsp;
+
+                    <!-- Only show delete button if not a new record -->
+                    @*      @if (objWeatherForecast.Id > 0)
+                    { *@
+                    <!-- Button to delete the forecast -->
+                    <button class="btn btn-danger"
+                    @onclick="DeleteForecast">
+                        Delete
+                    </button>
+                    @* } *@
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+@if (ErrorPopup)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Error</h3>
+                    <!-- Button to close the popup -->
+                    <button type="button" class="close"
+                    @onclick="ErrorCloseUP">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <!-- Edit form for the current forecast -->
+                <div class="modal-body">
+                    <h3> Student is Already Exstis</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    private StudentModel[]? studentsList;
+    // private StudentModel[]? studentsList;
+    private List<StudentModel> studentsList;
+
+    public StudentModel studentModel;
+    public bool ShowPopup;
+    public bool ErrorPopup;
+    public bool isEdit;
 
     protected override async Task OnInitializedAsync()
     {
@@ -44,18 +138,81 @@ else
         await Task.Delay(500);
 
         List<StudentModel> studentModels = new List<StudentModel>();
-        studentModels.Add(new StudentModel { FirstName = "nitish", LastName = "reddy", Address = "usa", Pincode = "909900" });
-        studentModels.Add(new StudentModel { FirstName = "saurabh", LastName = "kar", Address = "usa", Pincode = "909900" });
-        studentModels.Add(new StudentModel { FirstName = "nil", LastName = "ta", Address = "usa", Pincode = "909900" });
+        studentModels.Add(new StudentModel { RollNum = 1, FirstName = "nitish", LastName = "reddy", Address = "usa", Pincode = "909900" });
+        studentModels.Add(new StudentModel { RollNum =2, FirstName = "saurabh", LastName = "kar", Address = "usa", Pincode = "909900" });
+        studentModels.Add(new StudentModel { RollNum =3, FirstName = "nil", LastName = "ta", Address = "usa", Pincode = "909900" });
 
-        studentsList = studentModels.ToArray();
+        studentsList = studentModels;
     }
 
-    private class StudentModel
+    void AddNewStudent()
     {
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? Address { get; set; }
-        public string? Pincode { get; set; }
+        ShowPopup = true;
+        isEdit = false;
+        studentModel = new StudentModel();
+    }
+
+    void ClosePopup()
+    {
+        // Close the Popup
+        ShowPopup = false;
+    }
+
+    void ErrorCloseUP()
+    {
+        ErrorPopup = false;
+    }
+
+    void ViewStudent(StudentModel student)
+    {
+        ShowPopup = true;
+        isEdit = true;
+        studentModel = student;
+
+    }
+
+    void EditStudent()
+    {
+        int findStudent = studentsList.FindIndex(x => x.RollNum == studentModel.RollNum);
+
+        if (findStudent != -1) {
+            studentsList[findStudent].FirstName = studentModel.FirstName;
+            studentsList[findStudent].LastName = studentModel.LastName;
+            studentsList[findStudent].Address = studentModel.Address;
+            studentsList[findStudent].Pincode = studentModel.Pincode;
+        }
+        else{
+
+        }
+        ShowPopup = false;
+    }
+
+    void SaveStudent()
+    {
+        ShowPopup = false;
+
+        StudentModel? isAlreadyExsits = studentsList.Find(x => x.FirstName?.ToUpper() == studentModel.FirstName?.ToUpper());
+
+        if (isAlreadyExsits is not null)
+        {
+            ErrorPopup = true;
+
+        }
+        else
+        {
+            studentsList.Add(new StudentModel
+                {
+                    RollNum = studentsList.Count + 1,
+                    FirstName = studentModel.FirstName,
+                    LastName = studentModel.LastName,
+                    Address = studentModel.Address,
+                    Pincode = studentModel.Pincode
+                });
+        }
+    }
+
+    void DeleteForecast()
+    {
+        
     }
 }
