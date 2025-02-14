@@ -18,19 +18,29 @@ else
                 <th>Address</th>
                 <th>Pincode</th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
 
             @foreach (var student in studentsList)
             {
-                <tr>
-                    <td>@student.FirstName</td>
-                    <td>@student.LastName</td>
-                    <td>@student.Address</td>
-                    <td>@student.Pincode</td>
-                    <td> <button class="btn btn-success" @onclick="(()=>ViewStudent(student))">Edit</button></td>
-                </tr>
+                @if (student.IsDelete == true)
+                {
+                    <tr>
+                        <td>@student.FirstName</td>
+                        <td>@student.LastName</td>
+                        <td>@student.Address</td>
+                        <td>@student.Pincode</td>
+                        <td> <button class="btn btn-success" @onclick="(()=>ViewStudent(student))">Edit</button></td>
+                        <td>
+                            <button class="btn btn-danger"
+                            @onclick="(()=>DeleteStudent(student))">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
@@ -90,8 +100,8 @@ else
                     { *@
                     <!-- Button to delete the forecast -->
                     <button class="btn btn-danger"
-                    @onclick="DeleteForecast">
-                        Delete
+                    @onclick="Cancel">
+                        Cancel
                     </button>
                     @* } *@
                 </div>
@@ -116,7 +126,7 @@ else
                 </div>
                 <!-- Edit form for the current forecast -->
                 <div class="modal-body">
-                    <h3> Student is Already Exstis</h3>
+                    <h3> @ErrorMessage</h3>
                 </div>
             </div>
         </div>
@@ -131,6 +141,7 @@ else
     public bool ShowPopup;
     public bool ErrorPopup;
     public bool isEdit;
+    public string ErrorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -138,9 +149,9 @@ else
         await Task.Delay(500);
 
         List<StudentModel> studentModels = new List<StudentModel>();
-        studentModels.Add(new StudentModel { RollNum = 1, FirstName = "nitish", LastName = "reddy", Address = "usa", Pincode = "909900" });
-        studentModels.Add(new StudentModel { RollNum =2, FirstName = "saurabh", LastName = "kar", Address = "usa", Pincode = "909900" });
-        studentModels.Add(new StudentModel { RollNum =3, FirstName = "nil", LastName = "ta", Address = "usa", Pincode = "909900" });
+        studentModels.Add(new StudentModel { RollNum = 1, FirstName = "nitish", LastName = "reddy", Address = "usa", Pincode = "909900",IsDelete =true });
+        studentModels.Add(new StudentModel { RollNum = 2, FirstName = "saurabh", LastName = "kar", Address = "usa", Pincode = "909900", IsDelete = true });
+        studentModels.Add(new StudentModel { RollNum = 3, FirstName = "nil", LastName = "ta", Address = "usa", Pincode = "909900", IsDelete = true });
 
         studentsList = studentModels;
     }
@@ -181,38 +192,65 @@ else
             studentsList[findStudent].Address = studentModel.Address;
             studentsList[findStudent].Pincode = studentModel.Pincode;
         }
-        else{
 
-        }
         ShowPopup = false;
     }
 
-    void SaveStudent()
+    async Task SaveStudent()
     {
+        await Task.Delay(500);
+
         ShowPopup = false;
 
-        StudentModel? isAlreadyExsits = studentsList.Find(x => x.FirstName?.ToUpper() == studentModel.FirstName?.ToUpper());
-
-        if (isAlreadyExsits is not null)
+        if (SaveValidation())
         {
-            ErrorPopup = true;
-
-        }
-        else
-        {
-            studentsList.Add(new StudentModel
+                   studentsList.Add(new StudentModel
                 {
                     RollNum = studentsList.Count + 1,
                     FirstName = studentModel.FirstName,
                     LastName = studentModel.LastName,
                     Address = studentModel.Address,
-                    Pincode = studentModel.Pincode
+                    Pincode = studentModel.Pincode,
+                    IsDelete =true
                 });
         }
     }
 
-    void DeleteForecast()
+    async Task DeleteStudent(StudentModel student)
     {
-        
+        await Task.Delay(500);
+
+        int findStudentIdx = studentsList.FindIndex(x => x.RollNum == student.RollNum);
+        studentsList[findStudentIdx].IsDelete = false;
+    }
+
+    void Cancel()
+    {
+        ShowPopup = false;
+    }
+
+    bool SaveValidation()
+    {
+        bool isValid = true;
+
+        StudentModel? isAlreadyExsits = studentsList.Find(x => x.FirstName?.ToUpper() == studentModel.FirstName?.ToUpper());
+
+        if (isAlreadyExsits is not null)
+        {
+            ErrorMessage = "Student First Name is Already Exstis";
+            ErrorPopup = true;
+            isValid = false;
+
+        }
+        else if (studentModel.FirstName is null)
+        {
+            ErrorMessage = "Enter the  First Name";
+            ShowPopup = true;
+            ErrorPopup = true;
+            isValid = false;
+
+        }
+
+        return isValid;
     }
 }
